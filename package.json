@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Workspace-first project management app",
   "scripts": {
-    "install-all": "cd server && npm install && cd ../client && npm install",
+    "install-all": "cd server && npm install --production=false && cd ../client && npm install --production=false",
     "build": "npm run install-all && cd client && npm run build",
     "start": "cd server && node server.js",
     "dev": "cd server && npm run dev"
