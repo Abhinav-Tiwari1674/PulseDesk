@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #050505;
+  --color-card: #111111;
+  --color-primary: #F97316;
+  --color-primary-dark: #EA580C;
+  --color-accent: #FB923C;
+  --color-success: #10B981;
+  --color-secondary: #94A3B8;
+  --font-inter: "Inter", sans-serif;
+}
+
+@layer base {
+  *, ::after, ::before {
+    border-color: rgba(255, 255, 255, 0.06);
+  }
+  body {
+    background-color: var(--color-background);
+    color: white;
+    font-family: var(--font-inter);
+  }
+}
+
+@utility glass {
+  background: rgba(17, 17, 17, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+@utility glass-morphism {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+@utility text-gradient {
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  background-image: linear-gradient(to right, #F97316, #FB923C);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #050505;
+}
+::-webkit-scrollbar-thumb {
+  background: #222;
+  border-radius: 10px;
+}
+
+/* Fix autofill styles to match dark theme background */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #1e293b inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  caret-color: #ffffff !important;
+}
+
+/* For contact page black inputs */
+.bg-black\/50:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #0a0a0a inset !important;
+}
+
