@@ -1,4 +1,6 @@
 import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import morgan from 'morgan';
@@ -47,16 +49,30 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/workspaces', workspaceRoutes);
 
-// Basic Route
-app.get('/', (req, res) => {
-    res.json({ message: 'Welcome to PulseDesk API' });
-});
+// ---------- Serve React build in production ----------
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// 404 Handler - helpful for debugging
-app.use((req, res) => {
-    console.log(`404 at ${req.originalUrl}`);
-    res.status(404).json({ message: `Route ${req.originalUrl} not found` });
-});
+if (process.env.NODE_ENV === 'production') {
+    // Serve static assets from the React build
+    app.use(express.static(path.join(__dirname, '../client/dist')));
+
+    // Any route that is NOT an API route -> send index.html
+    app.get('*', (req, res) => {
+        res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+    });
+} else {
+    // Dev-only root route
+    app.get('/', (req, res) => {
+        res.json({ message: 'Welcome to PulseDesk API' });
+    });
+
+    // 404 Handler for dev
+    app.use((req, res) => {
+        console.log(`404 at ${req.originalUrl}`);
+        res.status(404).json({ message: `Route ${req.originalUrl} not found` });
+    });
+}
 
 const PORT = process.env.PORT || 5001;
 
