@@ -10,7 +10,9 @@ const transporter = nodemailer.createTransport({
     auth: {
         user: process.env.GMAIL_USER,
         pass: process.env.GMAIL_APP_PASSWORD
-    }
+    },
+    connectionTimeout: 5000, // 5 seconds
+    socketTimeout: 5000      // 5 seconds
 });
 
 // Verify SMTP connection when the server starts

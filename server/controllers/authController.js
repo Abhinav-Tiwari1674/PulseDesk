@@ -67,18 +67,14 @@ export const registerUser = async (req, res) => {
             });
 
             // Send verification code
-            if (process.env.NODE_ENV === 'development') {
-                console.log(`\n🔑 [OTP Verification Code] Generated for Admin ${user.email}: ${otpCode}\n`);
-            }
-            try {
-                await sendOtpEmail({
-                    to: user.email,
-                    name: user.name,
-                    code: otpCode
-                });
-            } catch (err) {
+            console.log(`\n🔑 [OTP Verification Code] Generated for Admin ${user.email}: ${otpCode}\n`);
+            sendOtpEmail({
+                to: user.email,
+                name: user.name,
+                code: otpCode
+            }).catch(err => {
                 console.error('Failed to send Admin OTP Email:', err);
-            }
+            });
 
             return res.status(201).json({
                 message: 'Registration successful! Verification code sent to your Gmail.',
@@ -115,18 +111,14 @@ export const registerUser = async (req, res) => {
             await existingEmployee.save();
 
             // Send verification code
-            if (process.env.NODE_ENV === 'development') {
-                console.log(`\n🔑 [OTP Verification Code] Generated for Employee ${existingEmployee.email}: ${otpCode}\n`);
-            }
-            try {
-                await sendOtpEmail({
-                    to: existingEmployee.email,
-                    name: existingEmployee.name,
-                    code: otpCode
-                });
-            } catch (err) {
+            console.log(`\n🔑 [OTP Verification Code] Generated for Employee ${existingEmployee.email}: ${otpCode}\n`);
+            sendOtpEmail({
+                to: existingEmployee.email,
+                name: existingEmployee.name,
+                code: otpCode
+            }).catch(err => {
                 console.error('Failed to send Employee OTP Email:', err);
-            }
+            });
 
             return res.status(200).json({
                 message: 'Registration successful! Verification code sent to your Gmail.',
@@ -625,15 +617,14 @@ export const resendOtp = async (req, res) => {
         user.otpExpires = new Date(Date.now() + 15 * 60 * 1000);
         await user.save();
 
-        try {
-            await sendOtpEmail({
-                to: user.email,
-                name: user.name,
-                code: otpCode
-            });
-        } catch (err) {
+        console.log(`\n🔑 [OTP Verification Code Resend] Generated for ${user.email}: ${otpCode}\n`);
+        sendOtpEmail({
+            to: user.email,
+            name: user.name,
+            code: otpCode
+        }).catch(err => {
             console.error('Failed to resend OTP Email:', err);
-        }
+        });
 
         res.json({ message: 'Verification code resent to your Gmail.' });
     } catch (error) {
