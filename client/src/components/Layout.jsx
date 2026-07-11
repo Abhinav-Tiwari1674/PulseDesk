@@ -42,7 +42,7 @@ const Layout = ({ children }) => {
     };
 
     return (
-        <div className="flex h-screen bg-[#050505] text-white overflow-hidden relative">
+        <div className="flex h-screen bg-transparent text-white overflow-hidden relative">
             {/* Desktop Sidebar (lg and up) */}
             <aside className="desktop-sidebar hidden lg:flex w-64 bg-[#0a0a0a] border-r border-white/5 flex-col flex-shrink-0">
                 <div className="p-6 flex flex-col flex-1 overflow-y-auto">
@@ -158,7 +158,7 @@ const Layout = ({ children }) => {
             {/* Main Content */}
             <main className="flex-1 flex flex-col overflow-hidden w-full">
                 {/* Header */}
-                <header className="h-16 border-b border-white/5 bg-[#050505]/80 backdrop-blur-md flex items-center justify-between px-4 sm:px-6 lg:px-8 flex-shrink-0">
+                <header className="h-16 border-b border-white/5 bg-[#050505]/20 backdrop-blur-md flex items-center justify-between px-4 sm:px-6 lg:px-8 flex-shrink-0">
                     <div className="flex items-center space-x-3">
                         {/* Hamburger menu for mobile/tablet */}
                         <button 

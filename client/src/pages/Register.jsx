@@ -177,7 +177,7 @@ const Register = () => {
     const anyLoading = isSubmitting || googleLoading;
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center bg-[#050505] p-4 py-10">
+        <div className="min-h-screen w-full flex items-center justify-center bg-transparent p-4 py-10">
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}

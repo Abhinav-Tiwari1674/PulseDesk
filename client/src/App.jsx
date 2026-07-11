@@ -11,6 +11,7 @@ import Tasks         from './pages/Tasks';
 import Profile       from './pages/Profile';
 import Chat          from './pages/Chat';
 import Layout        from './components/Layout';
+import SpaceBackground from './components/SpaceBackground';
 
 // ── Loading Spinner ────────────────────────────────────────────────────────
 const Spinner = () => (
@@ -50,6 +51,7 @@ const PublicRoute = ({ children }) => {
 function App() {
     return (
         <AuthProvider>
+            <SpaceBackground />
             <Router>
                 <Routes>
                     {/* ── Public ── */}
