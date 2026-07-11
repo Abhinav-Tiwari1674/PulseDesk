@@ -15,8 +15,6 @@ import {
     Send,
     Menu,
     X,
-    ChevronLeft,
-    ChevronRight,
     Play,
     ExternalLink
 } from 'lucide-react';
@@ -54,53 +52,7 @@ const features = [
     }
 ];
 
-const testimonials = [
-    {
-        quote: "PulseDesk completely transformed our developer tracking. AI summaries save me 5 hours a week of standup preparation.",
-        author: "Sarah Jenkins",
-        role: "CTO, CloudScale",
-        avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80"
-    },
-    {
-        quote: "Direct developer chats with tone adjustments made our remote collaboration seamless. Highly recommended.",
-        author: "David Chen",
-        role: "Engineering Manager, VeloDev",
-        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80"
-    },
-    {
-        quote: "The progress bar visual sync is fantastic. We know exactly what is done and who needs support instantly.",
-        author: "Elena Rostova",
-        role: "Product Director, NexaSoft",
-        avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=120&q=80"
-    }
-];
 
-const pricingPlans = [
-    {
-        name: "Starter",
-        price: "$19",
-        period: "per month",
-        desc: "Ideal for small teams getting started with tracking.",
-        features: ["Up to 10 employees", "Standard AI Summaries", "Basic Checklists", "Direct Team Chat"],
-        popular: false
-    },
-    {
-        name: "Pro",
-        price: "$49",
-        period: "per month",
-        desc: "Best for growing organizations needing deep AI insights.",
-        features: ["Unlimited employees", "Premium Gemini AI Summaries", "Priority Support", "Email & Slack Alerts", "Advanced Analytics Dashboard"],
-        popular: true
-    },
-    {
-        name: "Enterprise",
-        price: "Custom",
-        period: "",
-        desc: "For large scale companies looking for full workspace control.",
-        features: ["Enforced domain limits", "Dedicated SMTP server support", "Custom role-based permissions", "24/7 account manager support"],
-        popular: false
-    }
-];
 
 const faqs = [
     {
@@ -126,7 +78,6 @@ const Landing = () => {
     const [newsletterEmail, setNewsletterEmail] = useState('');
     const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const [currentTestimonial, setCurrentTestimonial] = useState(0);
     const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
@@ -150,13 +101,7 @@ const Landing = () => {
         }
     };
 
-    const nextTestimonial = () => {
-        setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
-    };
 
-    const prevTestimonial = () => {
-        setCurrentTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length);
-    };
 
     return (
         <div className="min-h-screen bg-[#09090B] text-slate-100 flex flex-col font-sans overflow-x-hidden selection:bg-[#FF6B00]/30 selection:text-white">
@@ -182,8 +127,6 @@ const Landing = () => {
                     <div className="hidden lg:flex items-center space-x-8 text-sm font-medium text-slate-400">
                         <a href="#features" className="hover:text-white transition-colors">Features</a>
                         <a href="#showcase" className="hover:text-white transition-colors">Product</a>
-                        <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
-                        <a href="#testimonials" className="hover:text-white transition-colors">Testimonials</a>
                         <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
                     </div>
 
@@ -224,8 +167,6 @@ const Landing = () => {
                                 {[
                                     ['#features', 'Features'],
                                     ['#showcase', 'Product'],
-                                    ['#pricing', 'Pricing'],
-                                    ['#testimonials', 'Testimonials'],
                                     ['#faq', 'FAQ']
                                 ].map(([href, label]) => (
                                     <a
@@ -318,19 +259,6 @@ const Landing = () => {
                             
                             {/* Dashboard Mockup Block */}
                             <div className="w-full rounded-2xl border border-white/10 shadow-[0_32px_80px_rgba(0,0,0,0.7)] overflow-hidden bg-[#0d0d10] p-1">
-                                {/* Chrome Window header */}
-                                <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 bg-white/2">
-                                    <div className="flex items-center gap-1.5">
-                                        <span className="w-2.5 h-2.5 rounded-full bg-[#FF5F57]" />
-                                        <span className="w-2.5 h-2.5 rounded-full bg-[#FEBC2E]" />
-                                        <span className="w-2.5 h-2.5 rounded-full bg-[#28C840]" />
-                                    </div>
-                                    <div className="flex items-center gap-2 bg-slate-900/80 rounded-md px-3 py-0.5 border border-white/5">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/70" />
-                                        <span className="text-[9px] font-mono text-slate-500">pulsedesk.app/workspace</span>
-                                    </div>
-                                    <div className="w-12" />
-                                </div>
 
                                 {/* Mock Interface shell */}
                                 <div className="flex h-[320px]">
@@ -545,143 +473,7 @@ const Landing = () => {
                 </div>
             </section>
 
-            {/* ── Pricing Section (Fully responsive stack / columns) ── */}
-            <section id="pricing" className="border-t border-white/5 py-16 sm:py-24 md:py-32 w-full">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-20">
-                    <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
-                        <span className="text-xs font-bold text-[#FF6B00] uppercase tracking-widest">Pricing plans</span>
-                        <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white mt-3">Simple Plans for Teams of Any Size</h2>
-                        <p className="text-slate-400 mt-4 text-sm sm:text-base">Start tracking developer progress for free, upgrade as your workspace scales.</p>
-                    </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
-                        {pricingPlans.map((plan) => (
-                            <div
-                                key={plan.name}
-                                className={`rounded-2xl border p-6 flex flex-col justify-between transition-all duration-300 relative ${
-                                    plan.popular
-                                        ? 'border-[#FF6B00] bg-[#FF6B00]/4 shadow-2xl shadow-[#FF6B00]/5 lg:scale-105 z-10'
-                                        : 'border-white/5 bg-slate-950/40 hover:border-white/10'
-                                }`}
-                            >
-                                {plan.popular && (
-                                    <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-[#FF6B00] text-black font-black text-[10px] uppercase tracking-widest">
-                                        Most Popular
-                                    </span>
-                                )}
-
-                                <div className="space-y-4">
-                                    <h3 className="text-lg font-bold text-white">{plan.name}</h3>
-                                    <div className="flex items-baseline gap-1">
-                                        <span className="text-3xl sm:text-4xl font-black text-white">{plan.price}</span>
-                                        <span className="text-xs text-slate-500 font-medium">{plan.period}</span>
-                                    </div>
-                                    <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">{plan.desc}</p>
-                                    <div className="w-full h-px bg-white/5" />
-                                    <ul className="space-y-3">
-                                        {plan.features.map((feature, i) => (
-                                            <li key={i} className="flex items-center gap-2 text-xs sm:text-sm text-slate-300">
-                                                <Check className="w-4 h-4 text-[#FF6B00] flex-shrink-0" />
-                                                <span>{feature}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-
-                                <div className="mt-8">
-                                    <Link
-                                        to="/register"
-                                        className={`w-full py-3.5 min-h-[48px] rounded-xl font-bold text-sm flex items-center justify-center transition-colors ${
-                                            plan.popular
-                                                ? 'bg-[#FF6B00] text-black hover:bg-orange-500'
-                                                : 'border border-slate-800 bg-slate-950 hover:bg-slate-900 text-white'
-                                        }`}
-                                    >
-                                        Get Started
-                                    </Link>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* ── Testimonials Section (Fully responsive columns / single card mobile slider) ── */}
-            <section id="testimonials" className="border-t border-white/5 py-16 sm:py-24 md:py-32 w-full bg-slate-950/10">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-20">
-                    <div className="text-center max-w-2xl mx-auto mb-12">
-                        <span className="text-xs font-bold text-[#FF6B00] uppercase tracking-widest">Testimonials</span>
-                        <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white mt-3">What Team Leaders Say</h2>
-                        <p className="text-slate-400 mt-4 text-sm sm:text-base">Thousands of product managers trust PulseDesk to monitor daily workflows.</p>
-                    </div>
-
-                    {/* Tablet/Desktop Grid Layout */}
-                    <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
-                        {testimonials.map((t, idx) => (
-                            <div
-                                key={idx}
-                                className="bg-[#0b0b0f] border border-white/5 rounded-2xl p-6 flex flex-col justify-between transition-all duration-300 hover:border-white/10"
-                            >
-                                <p className="text-slate-300 text-sm leading-relaxed italic">"{t.quote}"</p>
-                                <div className="flex items-center gap-3 mt-6 border-t border-white/5 pt-4">
-                                    <img
-                                        src={t.avatar}
-                                        alt={t.author}
-                                        className="w-10 h-10 rounded-full object-cover border border-white/10"
-                                        loading="lazy"
-                                    />
-                                    <div>
-                                        <p className="text-sm font-bold text-white">{t.author}</p>
-                                        <p className="text-xs text-slate-500">{t.role}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Mobile Single Card Slider with Large Tap targets controls */}
-                    <div className="md:hidden flex flex-col items-center gap-6">
-                        <div className="w-full bg-[#0b0b0f] border border-white/5 rounded-2xl p-6 min-h-[180px] flex flex-col justify-between">
-                            <p className="text-slate-300 text-sm leading-relaxed italic">
-                                "{testimonials[currentTestimonial].quote}"
-                            </p>
-                            <div className="flex items-center gap-3 mt-6 border-t border-white/5 pt-4">
-                                <img
-                                    src={testimonials[currentTestimonial].avatar}
-                                    alt={testimonials[currentTestimonial].author}
-                                    className="w-10 h-10 rounded-full object-cover border border-white/10"
-                                    loading="lazy"
-                                />
-                                <div>
-                                    <p className="text-sm font-bold text-white">{testimonials[currentTestimonial].author}</p>
-                                    <p className="text-xs text-slate-500">{testimonials[currentTestimonial].role}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Slider Controls with minimum 44px tap targets */}
-                        <div className="flex items-center gap-4">
-                            <button
-                                onClick={prevTestimonial}
-                                aria-label="Previous testimonial"
-                                className="w-11 h-11 rounded-full border border-white/10 hover:border-[#FF6B00] text-slate-400 hover:text-white flex items-center justify-center transition-colors min-h-[44px] min-w-[44px]"
-                            >
-                                <ChevronLeft className="w-5 h-5" />
-                            </button>
-                            <span className="text-xs text-slate-500 font-bold">
-                                {currentTestimonial + 1} / {testimonials.length}
-                            </span>
-                            <button
-                                onClick={nextTestimonial}
-                                aria-label="Next testimonial"
-                                className="w-11 h-11 rounded-full border border-white/10 hover:border-[#FF6B00] text-slate-400 hover:text-white flex items-center justify-center transition-colors min-h-[44px] min-w-[44px]"
-                            >
-                                <ChevronRight className="w-5 h-5" />
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </section>
 
             {/* ── FAQ Section ── */}
             <section id="faq" className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 py-16 sm:py-24 md:py-32 w-full">
@@ -771,7 +563,6 @@ const Landing = () => {
                         <ul className="space-y-2.5 text-xs text-slate-500">
                             <li><a href="#features" className="hover:text-white transition-colors py-1 block">Features</a></li>
                             <li><a href="#showcase" className="hover:text-white transition-colors py-1 block">Workspace Showcase</a></li>
-                            <li><a href="#pricing" className="hover:text-white transition-colors py-1 block">Pricing Plans</a></li>
                             <li><Link to="/login" className="hover:text-white transition-colors py-1 block">Sign In</Link></li>
                         </ul>
                     </div>
