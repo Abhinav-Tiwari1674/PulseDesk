@@ -1,28 +1,52 @@
-import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 
 // Load environment variables immediately to support ES module import sequence
 dotenv.config();
 
-// Create a reusable transporter using Gmail SMTP
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_APP_PASSWORD
-    },
-    connectionTimeout: 5000, // 5 seconds
-    socketTimeout: 5000      // 5 seconds
-});
+// Brevo API Email Sender (HTTP-based, not blocked by Render)
+const sendEmailViaBrevo = async ({ to, subject, html }) => {
+    const apiKey = process.env.BREVO_API_KEY;
+    const senderEmail = process.env.BREVO_SENDER_EMAIL || process.env.GMAIL_USER || 'pulsedesk.auth@gmail.com';
 
-// Verify SMTP connection when the server starts
-transporter.verify((error, success) => {
-    if (error) {
-        console.error('❌ SMTP Connection Error:', error.message || error);
-    } else {
-        console.log('✅ SMTP Connected Successfully');
+    if (!apiKey) {
+        console.warn('⚠️ BREVO_API_KEY is missing! Emails will not be sent.');
+        return null;
     }
-});
+
+    try {
+        const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+            method: 'POST',
+            headers: {
+                'accept': 'application/json',
+                'api-key': apiKey,
+                'content-type': 'application/json'
+            },
+            body: JSON.stringify({
+                sender: {
+                    name: 'PulseDesk',
+                    email: senderEmail
+                },
+                to: [
+                    {
+                        email: to
+                    }
+                ],
+                subject,
+                htmlContent: html
+            })
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || JSON.stringify(data));
+        }
+        console.log(`📩 Email sent successfully to ${to} via Brevo`);
+        return data;
+    } catch (error) {
+        console.error(`❌ Failed to send email to ${to} via Brevo:`, error.message);
+        throw error;
+    }
+};
 
 /**
  * Send a password reset email via Gmail SMTP.
@@ -92,7 +116,7 @@ const sendResetEmail = async ({ to, name, resetUrl }) => {
         `
     };
 
-    await transporter.sendMail(mailOptions);
+    await sendEmailViaBrevo(mailOptions);
 };
 
 /**
@@ -147,7 +171,7 @@ export const sendTaskAssignmentEmail = async ({ to, employeeName, taskTitle, adm
 </html>
         `
     };
-    await transporter.sendMail(mailOptions);
+    await sendEmailViaBrevo(mailOptions);
 };
 
 /**
@@ -202,7 +226,7 @@ export const sendTaskCompletionEmail = async ({ to, adminName, employeeName, tas
 </html>
         `
     };
-    await transporter.sendMail(mailOptions);
+    await sendEmailViaBrevo(mailOptions);
 };
 
 /**
@@ -257,8 +281,7 @@ export const sendOtpEmail = async ({ to, name, code }) => {
 </html>
         `
     };
-    await transporter.sendMail(mailOptions);
+    await sendEmailViaBrevo(mailOptions);
 };
 
 export default sendResetEmail;
-export { transporter };
