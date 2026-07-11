@@ -15,6 +15,10 @@
   *, ::after, ::before {
     border-color: rgba(255, 255, 255, 0.06);
   }
+  html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
   body {
     background-color: var(--color-background);
     color: white;
@@ -71,3 +75,25 @@ input:-webkit-autofill:active {
   -webkit-box-shadow: 0 0 0 1000px #0a0a0a inset !important;
 }
 
+/* Bulletproof responsive overrides for Layout shell */
+.desktop-sidebar {
+  display: none !important;
+}
+.mobile-sidebar-drawer {
+  display: block !important;
+}
+.mobile-sidebar-toggle {
+  display: flex !important;
+}
+
+@media (min-width: 1024px) {
+  .desktop-sidebar {
+    display: flex !important;
+  }
+  .mobile-sidebar-drawer {
+    display: none !important;
+  }
+  .mobile-sidebar-toggle {
+    display: none !important;
+  }
+}

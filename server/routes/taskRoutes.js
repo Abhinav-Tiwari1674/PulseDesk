@@ -1,25 +1,40 @@
 import express from 'express';
-import { 
-    createTask, 
-    getProjectTasks, 
-    updateTaskStatus, 
+import {
+    getTasks,
+    getTaskById,
+    createTask,
     updateTask,
     deleteTask,
-    getDashboardStats
+    getDashboardStats,
+    generateAiTaskBreakdown,
+    getAiTaskSummary
 } from '../controllers/taskController.js';
-import { protect, requireWorkspace } from '../middlewares/authMiddleware.js';
+import { protect, requireRole } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-router.get('/dashboard-stats', protect, requireWorkspace, getDashboardStats);
+// Dashboard stats (role-aware: admin vs employee)
+router.get('/dashboard-stats', protect, getDashboardStats);
 
-router.post('/', protect, requireWorkspace, createTask);
+// AI Generation (Admin only)
+router.post('/ai-generate', protect, requireRole('admin'), generateAiTaskBreakdown);
 
-router.get('/project/:projectId', protect, requireWorkspace, getProjectTasks);
+// Get tasks (admin: all | employee: own only)
+router.get('/', protect, getTasks);
 
-router.put('/:id', protect, requireWorkspace, updateTask);
-router.delete('/:id', protect, requireWorkspace, deleteTask);
+// Get single task by ID
+router.get('/:id', protect, getTaskById);
 
-router.patch('/:id/status', protect, requireWorkspace, updateTaskStatus);
+// AI Status Summary
+router.get('/:id/ai-summary', protect, getAiTaskSummary);
+
+// Create task (Admin only)
+router.post('/', protect, requireRole('admin'), createTask);
+
+// Update task (admin: full update | employee: status/progress/message only — enforced in controller)
+router.put('/:id', protect, updateTask);
+
+// Delete task (Admin only)
+router.delete('/:id', protect, requireRole('admin'), deleteTask);
 
 export default router;

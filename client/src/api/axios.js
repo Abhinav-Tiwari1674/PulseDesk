@@ -5,10 +5,9 @@ const api = axios.create({
     withCredentials: true
 });
 
-// Automatically attach JWT token and current Workspace ID to every request
+// Automatically attach JWT token to every request
 api.interceptors.request.use(
     (config) => {
-        // Attach JWT token
         const userInfo = localStorage.getItem('userInfo');
         if (userInfo) {
             try {
@@ -20,16 +19,29 @@ api.interceptors.request.use(
                 // ignore parse errors
             }
         }
-
-        // Attach workspace ID header
-        const currentWorkspaceId = localStorage.getItem('currentWorkspaceId');
-        if (currentWorkspaceId) {
-            config.headers['x-workspace-id'] = currentWorkspaceId;
-        }
-
         return config;
     },
     (error) => Promise.reject(error)
+);
+
+// Intercept 401/403 errors (e.g., if session changes in another tab) to force a logout/redirect
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+            const message = error.response.data?.message || '';
+            // If it's a authorization failure or role access denial
+            if (message.includes('Access denied') || message.includes('Not authorized')) {
+                localStorage.removeItem('userInfo');
+                sessionStorage.removeItem('userInfo');
+                // Avoid infinite redirect loops
+                if (!window.location.pathname.includes('/login') && window.location.pathname !== '/') {
+                    window.location.href = '/login?session_expired=true';
+                }
+            }
+        }
+        return Promise.reject(error);
+    }
 );
 
 export default api;

@@ -1,167 +1,147 @@
 import { createContext, useState, useEffect, useContext } from 'react';
 import api from '../api/axios';
+import { signInWithGoogle } from '../firebase';
 
 const AuthContext = createContext();
 
+// Storage keys
+const STORAGE_KEY = 'userInfo';
+
+// Helper: read from both storages (rememberMe uses localStorage, session uses sessionStorage)
+const readStoredUser = () => {
+    try {
+        const local   = localStorage.getItem(STORAGE_KEY);
+        const session = sessionStorage.getItem(STORAGE_KEY);
+        const raw = local || session;
+        return raw ? JSON.parse(raw) : null;
+    } catch {
+        return null;
+    }
+};
+
+// Helper: persist user to the appropriate storage
+const writeUser = (userData, rememberMe) => {
+    const json = JSON.stringify(userData);
+    if (rememberMe) {
+        localStorage.setItem(STORAGE_KEY, json);
+        sessionStorage.removeItem(STORAGE_KEY);
+    } else {
+        sessionStorage.setItem(STORAGE_KEY, json);
+        localStorage.removeItem(STORAGE_KEY);
+    }
+};
+
+// Helper: remove from both storages
+const clearUser = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    sessionStorage.removeItem(STORAGE_KEY);
+};
+
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
-    const [workspace, setWorkspace] = useState(null);
+    const [user, setUser]       = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Check if user is logged in and fetch current workspace details
-    const checkAuth = async () => {
-        try {
-            const storedUser = localStorage.getItem('userInfo');
-            if (storedUser) {
-                const parsedUser = JSON.parse(storedUser);
-                setUser(parsedUser);
-
-                // If user has a current workspace, fetch its details
-                if (parsedUser.currentWorkspace) {
-                    try {
-                        // Store the workspace ID in localStorage to ensure the request interceptor attaches it
-                        localStorage.setItem('currentWorkspaceId', parsedUser.currentWorkspace);
-                        const { data } = await api.get('/workspaces/current');
-                        setWorkspace(data);
-                    } catch (wsErr) {
-                        console.error('Failed to fetch workspace details:', wsErr);
-                        // If it fails with a 403 or 404, maybe workspace was deleted or user was removed
-                        if (wsErr.response?.status === 403 || wsErr.response?.status === 404) {
-                            setWorkspace(null);
-                            // Clear workspace info from user
-                            const updatedUser = { ...parsedUser, currentWorkspace: null };
-                            setUser(updatedUser);
-                            localStorage.setItem('userInfo', JSON.stringify(updatedUser));
-                            localStorage.removeItem('currentWorkspaceId');
-                        }
-                    }
-                }
-            }
-        } catch (error) {
-            console.error('Auth verification error:', error);
-            logout();
-        } finally {
-            setLoading(false);
-        }
-    };
-
+    // On mount: restore session from storage
     useEffect(() => {
-        checkAuth();
+        const stored = readStoredUser();
+        if (stored) setUser(stored);
+        setLoading(false);
     }, []);
 
-    const login = async (email, password) => {
-        setLoading(true);
-        try {
-            const { data } = await api.post('/auth/login', { email, password });
-            setUser(data);
-            localStorage.setItem('userInfo', JSON.stringify(data));
-            
-            if (data.currentWorkspace) {
-                localStorage.setItem('currentWorkspaceId', data.currentWorkspace);
-                try {
-                    const wsRes = await api.get('/workspaces/current');
-                    setWorkspace(wsRes.data);
-                } catch (err) {
-                    console.error('Error fetching workspace after login:', err);
-                }
-            } else {
-                setWorkspace(null);
-                localStorage.removeItem('currentWorkspaceId');
-            }
-            return data;
-        } finally {
-            setLoading(false);
-        }
+    // ── Email / Password Login ─────────────────────────────────────────────
+    const login = async (email, password, rememberMe = false) => {
+        const { data } = await api.post('/auth/login', { email, password, rememberMe });
+        setUser(data);
+        writeUser(data, rememberMe);
+        return data;
     };
 
-    const register = async (name, email, password) => {
-        setLoading(true);
-        try {
-            const { data } = await api.post('/auth/register', { name, email, password });
+    // ── Email / Password Register ──────────────────────────────────────────
+    const register = async (name, email, password, role = 'employee', employeeId = '') => {
+        const { data } = await api.post('/auth/register', { name, email, password, role, employeeId });
+        if (!data.requiresVerification) {
             setUser(data);
-            localStorage.setItem('userInfo', JSON.stringify(data));
-            setWorkspace(null);
-            localStorage.removeItem('currentWorkspaceId');
-            return data;
-        } finally {
-            setLoading(false);
+            writeUser(data, false); // session storage by default for new sign-ups
         }
+        return data;
     };
 
+    // ── Verify Registration OTP ────────────────────────────────────────────
+    const verifyOtp = async (email, code) => {
+        const { data } = await api.post('/auth/verify-otp', { email, code });
+        setUser(data);
+        writeUser(data, false);
+        return data;
+    };
+
+    // ── Resend Registration OTP ───────────────────────────────────────────
+    const resendOtp = async (email) => {
+        const { data } = await api.post('/auth/resend-otp', { email });
+        return data;
+    };
+ 
+    // ── Google Sign-In ─────────────────────────────────────────────────────
+    const googleLogin = async (role = 'employee', employeeId = '') => {
+        // Step 1: Open Google popup, get Firebase ID token
+        const idToken = await signInWithGoogle();
+        // Step 2: Send token to backend for verification + JWT generation
+        const { data } = await api.post('/auth/google', { idToken, role, employeeId });
+        setUser(data);
+        writeUser(data, true); // Google logins always persist
+        return data;
+    };
+
+    // ── Forgot Password ────────────────────────────────────────────────────
+    const forgotPassword = async (email) => {
+        const { data } = await api.post('/auth/forgot-password', { email });
+        return data;
+    };
+
+    // ── Reset Password ─────────────────────────────────────────────────────
+    const resetPassword = async (token, password) => {
+        const { data } = await api.post(`/auth/reset-password/${token}`, { password });
+        return data;
+    };
+
+    // ── Logout ─────────────────────────────────────────────────────────────
     const logout = async () => {
         try {
             await api.post('/auth/logout');
-        } catch (err) {
-            console.error('Logout error on backend:', err);
+        } catch {
+            // Continue with local logout even if backend call fails
         }
         setUser(null);
-        setWorkspace(null);
-        localStorage.removeItem('userInfo');
-        localStorage.removeItem('currentWorkspaceId');
+        clearUser();
     };
 
-    // Call this after creating a workspace or when a join request is approved
-    const selectWorkspace = async (workspaceId) => {
-        if (!workspaceId) {
-            setWorkspace(null);
-            localStorage.removeItem('currentWorkspaceId');
-            if (user) {
-                const updatedUser = { ...user, currentWorkspace: null };
-                setUser(updatedUser);
-                localStorage.setItem('userInfo', JSON.stringify(updatedUser));
-            }
-            return;
-        }
-
-        localStorage.setItem('currentWorkspaceId', workspaceId);
-        try {
-            const { data } = await api.get('/workspaces/current');
-            setWorkspace(data);
-            
-            if (user) {
-                const updatedUser = { ...user, currentWorkspace: workspaceId, role: data.role };
-                setUser(updatedUser);
-                localStorage.setItem('userInfo', JSON.stringify(updatedUser));
-            }
-        } catch (err) {
-            console.error('Error selecting workspace:', err);
-            throw err;
-        }
-    };
-
-    // Force refresh user & workspace data from the backend
+    // ── Refresh user data from server ──────────────────────────────────────
     const refreshAuth = async () => {
         try {
-            const { data: userData } = await api.get('/auth/me');
-            const storedUser = localStorage.getItem('userInfo');
-            const parsedUser = storedUser ? JSON.parse(storedUser) : {};
-            const mergedUser = { ...parsedUser, ...userData };
-            setUser(mergedUser);
-            localStorage.setItem('userInfo', JSON.stringify(mergedUser));
-
-            if (userData.currentWorkspace) {
-                localStorage.setItem('currentWorkspaceId', userData.currentWorkspace);
-                const { data: wsData } = await api.get('/workspaces/current');
-                setWorkspace(wsData);
-            } else {
-                setWorkspace(null);
-                localStorage.removeItem('currentWorkspaceId');
-            }
-        } catch (err) {
-            console.error('Error refreshing auth data:', err);
+            const { data } = await api.get('/auth/me');
+            const stored = readStoredUser() || {};
+            const merged = { ...stored, ...data };
+            setUser(merged);
+            // Keep whichever storage was originally used
+            const inLocal = Boolean(localStorage.getItem(STORAGE_KEY));
+            writeUser(merged, inLocal);
+        } catch {
+            // Silently fail — user stays logged in with cached data
         }
     };
 
     return (
-        <AuthContext.Provider value={{ 
-            user, 
-            workspace, 
-            loading, 
-            login, 
-            register, 
-            logout, 
-            selectWorkspace, 
-            refreshAuth 
+        <AuthContext.Provider value={{
+            user,
+            loading,
+            login,
+            register,
+            verifyOtp,
+            resendOtp,
+            googleLogin,
+            forgotPassword,
+            resetPassword,
+            logout,
+            refreshAuth
         }}>
             {children}
         </AuthContext.Provider>

@@ -25,3 +25,6 @@ Thumbs.db
 # Misc
 *.swp
 *.swo
+*serviceAccountKey*.json
+*key*.json
+
