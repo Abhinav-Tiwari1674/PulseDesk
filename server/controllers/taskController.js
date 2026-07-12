@@ -119,7 +119,7 @@ export const updateTask = async (req, res) => {
 
             const { status, progressPercentage, workUpdateMessage, subTasks } = req.body;
 
-            if (subTasks !== undefined) {
+            if (subTasks !== undefined && subTasks.length > 0) {
                 task.subTasks = subTasks;
                 if (subTasks.length > 0) {
                     const completedCount = subTasks.filter(st => st.isCompleted).length;
@@ -176,7 +176,7 @@ export const updateTask = async (req, res) => {
             if (assignedEmployee !== undefined) task.assignedEmployee = assignedEmployee;
             if (priority !== undefined) task.priority = priority;
 
-            if (subTasks !== undefined) {
+            if (subTasks !== undefined && subTasks.length > 0) {
                 task.subTasks = subTasks;
                 if (subTasks.length > 0) {
                     const completedCount = subTasks.filter(st => st.isCompleted).length;

@@ -297,12 +297,13 @@ const UpdateModal = ({ task, onClose, onSave }) => {
         setSaving(true);
         setError('');
         try {
-            const { data } = await api.put(`/tasks/${task._id}`, {
+            const payload = {
                 status,
                 progressPercentage: progress,
-                subTasks,
                 workUpdateMessage: newMessage.trim()
-            });
+            };
+            if (subTasks.length > 0) payload.subTasks = subTasks;
+            const { data } = await api.put(`/tasks/${task._id}`, payload);
             setUpdates(data.updates || []);
             setNewMessage('');
             onSave(data); // Update main page dashboard stats
@@ -315,11 +316,12 @@ const UpdateModal = ({ task, onClose, onSave }) => {
 
     const handleStatusOrProgressChange = async (newStatus, newProgress) => {
         try {
-            const { data } = await api.put(`/tasks/${task._id}`, {
+            const payload = {
                 status: newStatus,
                 progressPercentage: newProgress,
-                subTasks
-            });
+            };
+            if (subTasks.length > 0) payload.subTasks = subTasks;
+            const { data } = await api.put(`/tasks/${task._id}`, payload);
             onSave(data);
         } catch (err) {
             // ignore silent update errors
@@ -633,11 +635,17 @@ const EmployeeDashboard = ({ user }) => {
     }, []);
 
     const handleSave = (updatedTask) => {
-        setStats(prev => ({
-            ...prev,
-            myTasks: prev.myTasks.map(t => t._id === updatedTask._id ? updatedTask : t),
-            myCompleted: prev.myTasks.filter(t => t._id === updatedTask._id ? updatedTask.status === 'completed' : t.status === 'completed').length
-        }));
+        setStats(prev => {
+            const updatedTasks = prev.myTasks.map(t => t._id === updatedTask._id ? updatedTask : t);
+            return {
+                ...prev,
+                myTasks: updatedTasks,
+                totalAssigned: updatedTasks.length,
+                myCompleted: updatedTasks.filter(t => t.status === 'completed').length,
+                myPending: updatedTasks.filter(t => t.status === 'pending').length,
+                myInProgress: updatedTasks.filter(t => t.status === 'in-progress').length
+            };
+        });
     };
 
     if (loading) return (
