@@ -45,6 +45,12 @@ export const sendMessage = async (req, res) => {
             { path: 'receiver', select: 'name role email' }
         ]);
 
+        // Emit message to receiver's socket room
+        const io = req.app.get('socketio');
+        if (io) {
+            io.to(receiverId).emit('message_received', populated);
+        }
+
         res.status(201).json(populated);
     } catch (error) {
         res.status(400).json({ message: error.message });

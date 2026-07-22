@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import { Search, Send, MessageSquare, Loader2, User, AlertCircle, ArrowLeft } from 'lucide-react';
+import { io } from 'socket.io-client';
 
 const Chat = () => {
     const { user } = useAuth();
@@ -14,9 +15,9 @@ const Chat = () => {
     const [sending, setSending] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [error, setError] = useState('');
+    const [socket, setSocket] = useState(null);
 
     const chatEndRef = useRef(null);
-    const pollingIntervalRef = useRef(null);
 
     // Auto-scroll chat to bottom
     const scrollToBottom = () => {
@@ -65,7 +66,28 @@ const Chat = () => {
         }
     }, [user]);
 
-    // Fetch and Poll Messages for selected contact
+    // Socket.io initialization and room connection
+    useEffect(() => {
+        const socketUrl = import.meta.env.MODE === 'production' 
+            ? window.location.origin 
+            : 'http://localhost:5001';
+
+        const newSocket = io(socketUrl, {
+            withCredentials: true
+        });
+
+        setSocket(newSocket);
+
+        if (user?._id) {
+            newSocket.emit('join', user._id);
+        }
+
+        return () => {
+            newSocket.disconnect();
+        };
+    }, [user]);
+
+    // Fetch Messages for selected contact (once on select, no polling)
     useEffect(() => {
         if (!selectedContact) {
             setMessages([]);
@@ -78,31 +100,37 @@ const Chat = () => {
                 const { data } = await api.get(`/messages/${selectedContact._id}`);
                 setMessages(data);
             } catch (err) {
-                // Fail silently on polling
+                // Fail silently
             } finally {
                 if (showLoading) setLoadingMessages(false);
             }
         };
 
-        // Fetch immediately with loader
         fetchMessages(true);
+    }, [selectedContact]);
 
-        // Clear previous poll
-        if (pollingIntervalRef.current) {
-            clearInterval(pollingIntervalRef.current);
-        }
+    // Listen to real-time socket messages
+    useEffect(() => {
+        if (!socket || !selectedContact) return;
 
-        // Set up 3-second real-time polling
-        pollingIntervalRef.current = setInterval(() => {
-            fetchMessages(false);
-        }, 3000);
-
-        return () => {
-            if (pollingIntervalRef.current) {
-                clearInterval(pollingIntervalRef.current);
+        const handleMessageReceived = (msg) => {
+            const senderId = msg.sender?._id || msg.sender;
+            if (senderId === selectedContact._id) {
+                setMessages((prev) => {
+                    if (prev.some((m) => m._id === msg._id)) {
+                        return prev;
+                    }
+                    return [...prev, msg];
+                });
             }
         };
-    }, [selectedContact]);
+
+        socket.on('message_received', handleMessageReceived);
+
+        return () => {
+            socket.off('message_received', handleMessageReceived);
+        };
+    }, [socket, selectedContact]);
 
     // Handle Send Message
     const handleSendMessage = async (e) => {

@@ -7,6 +7,8 @@ import cors from 'cors';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
+import http from 'http';
+import { Server } from 'socket.io';
 
 import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
@@ -20,6 +22,25 @@ dotenv.config();
 connectDB();
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: process.env.NODE_ENV === 'production'
+            ? process.env.CLIENT_URL
+            : true,
+        credentials: true
+    }
+});
+
+app.set('socketio', io);
+
+io.on('connection', (socket) => {
+    socket.on('join', (userId) => {
+        if (userId) {
+            socket.join(userId);
+        }
+    });
+});
 
 // Security headers
 app.use(helmet({
@@ -66,4 +87,4 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 const PORT = process.env.PORT || 5001;
-app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
+server.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
